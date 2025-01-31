@@ -5,12 +5,9 @@ const path = require("path");
 const fs = require("fs");
 
 const app = express();
-const port = 3000;
-
-// Set up file upload
 const upload = multer({ dest: "uploads/" });
 
-app.post("/whisper", upload.single("audio"), (req, res) => {
+app.post("/api/whisper", upload.single("audio"), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
     }
@@ -25,7 +22,6 @@ app.post("/whisper", upload.single("audio"), (req, res) => {
             return res.status(500).json({ error: "Transcription failed" });
         }
 
-        // Read and return only the "transcription" array
         fs.readFile(outputFilePath, "utf8", (err, data) => {
             if (err) {
                 return res.status(500).json({ error: "Failed to read JSON output" });
@@ -34,8 +30,6 @@ app.post("/whisper", upload.single("audio"), (req, res) => {
             try {
                 const jsonData = JSON.parse(data);
                 res.json(jsonData.transcription || []);
-
-                // Cleanup: Delete temporary files
                 fs.unlinkSync(inputFilePath);
                 fs.unlinkSync(outputFilePath);
             } catch (parseError) {
@@ -45,6 +39,4 @@ app.post("/whisper", upload.single("audio"), (req, res) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-});
+module.exports = app;
